@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Entry Form</title>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    background: #f5f5f5;
+  }
+  .container {
+    background: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+  .logo {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 15px;
+    object-fit: contain;
+  }
+  h2 { margin-bottom: 20px; }
+
+  input, select, button {
+    width: 100%;
+    padding: 12px 10px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+  }
+  button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  button:hover { background-color: #45a049; }
+
+  #msg {
+    font-weight: bold;
+    color: green;
+    margin-top: 10px;
+  }
+
+  /* Preview Box */
+  #previewBox {
+    display: none;
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 10px;
+    background: #f1f1f1;
+  }
+  #previewBox button {
+    margin-top: 10px;
+  }
+  #confirmBtn { background:#2196F3; }
+  #cancelBtn { background:#f44336; }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- Logo -->
+  <img src="./OIP.webp" alt="Logo" class="logo">
+
+  <h2>Payment Entry</h2>
+
+  <form id="paymentForm">
+    <select id="party" required>
+      <option value="" disabled selected>Select Party</option>
+    </select>
+
+    <input type="number" id="payment" placeholder="Payment Amount" required>
+
+    <button type="submit">Save Payment</button>
+  </form>
+
+  <!-- Preview -->
+  <div id="previewBox">
+    <p><strong>Party:</strong> <span id="pParty"></span></p>
+    <p><strong>Amount:</strong> <span id="pAmount"></span></p>
+    <button id="confirmBtn">OK</button>
+    <button id="cancelBtn">Cancel</button>
+  </div>
+
+  <div id="msg"></div>
+</div>
+
+<script>
+// Party Names
+const partyNames = [
+  "A.GHANI","AFNAN","IQBAL","KAMAL","ISLAMUDDIN",
+  "STAR","AYUB L.A","SIDDIQUE","WAHABUDDIN",
+  "IMTIAZ","IQBAL","FARHAN"
+];
+
+const select = document.getElementById("party");
+partyNames.forEach(name => {
+  const option = document.createElement("option");
+  option.value = name;
+  option.textContent = name;
+  select.appendChild(option);
+});
+
+// Google Script URL
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyzFkTEW2-yvu4R6y6LcCPs9NENH3oWTDO8LwqGWsUF3tV4P051uQRLUx6u555weU4leg/exec";
+
+let tempParty = "";
+let tempPayment = "";
+
+// Form Submit → Preview
+document.getElementById("paymentForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  tempParty = document.getElementById("party").value;
+  tempPayment = document.getElementById("payment").value;
+
+  document.getElementById("pParty").textContent = tempParty;
+  document.getElementById("pAmount").textContent = tempPayment;
+
+  document.getElementById("previewBox").style.display = "block";
+});
+
+// OK → Save
+document.getElementById("confirmBtn").addEventListener("click", async function() {
+  const msg = document.getElementById("msg");
+
+  try {
+    await fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `party=${encodeURIComponent(tempParty)}&payment=${encodeURIComponent(tempPayment)}`
+    });
+
+    msg.textContent = "Saved ✅";
+    document.getElementById("paymentForm").reset();
+    document.getElementById("previewBox").style.display = "none";
+
+    setTimeout(() => { msg.textContent = ""; }, 2000);
+  } catch (err) {
+    msg.textContent = "Error ❌";
+    console.error(err);
+  }
+});
+
+// Cancel → No Save
+document.getElementById("cancelBtn").addEventListener("click", function() {
+  document.getElementById("previewBox").style.display = "none";
+});
+</script>
+
+</body>
+</html>
